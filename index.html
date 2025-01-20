@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon TikTok Finder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Amazon TikTok Finder</h1>
+        <form id="searchForm" class="mt-4">
+            <div class="mb-3">
+                <label for="productName" class="form-label">Amazon Product Name</label>
+                <input type="text" id="productName" class="form-control" placeholder="Enter product name" required>
+            </div>
+            <div class="mb-3">
+                <label for="affiliateLink" class="form-label">Affiliate Link</label>
+                <input type="text" id="affiliateLink" class="form-control" placeholder="Enter affiliate link" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Find TikTok Videos</button>
+        </form>
+
+        <div id="results" class="mt-5" style="display: none;">
+            <h3>Results</h3>
+            <p><strong>Catchy Phrase:</strong> <span id="catchyPhrase"></span></p>
+            <p><strong>TikTok Videos:</strong></p>
+            <ul id="videoList" class="list-group"></ul>
+        </div>
+
+        <div id="error" class="alert alert-danger mt-4" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const productName = document.getElementById('productName').value;
+            const affiliateLink = document.getElementById('affiliateLink').value;
+
+            // Hide previous results and errors
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            try {
+                const response = await axios.post('http://localhost:5000/process', {
+                    product_name: productName,
+                    affiliate_link: affiliateLink
+                });
+
+                const data = response.data;
+
+                // Populate results
+                document.getElementById('catchyPhrase').textContent = data.catchy_phrase;
+                const videoList = document.getElementById('videoList');
+                videoList.innerHTML = '';
+
+                data.tiktok_videos.forEach(video => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    listItem.innerHTML = `<a href="${video}" target="_blank">${video}</a>`;
+                    videoList.appendChild(listItem);
+                });
+
+                document.getElementById('results').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                document.getElementById('error').textContent = error.response?.data?.error || 'An error occurred while processing your request.';
+                document.getElementById('error').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
